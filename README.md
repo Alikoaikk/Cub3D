@@ -42,6 +42,23 @@ No OpenGL. No game engine. Just math, pixels, and C.
 
 The core idea: for every vertical column of pixels on the screen, cast a ray from the player into the map and find the nearest wall. The closer the wall, the taller it appears.
 
+### Camera & Field of View
+
+```
+                    camera plane
+               ◄────────────────────►
+               │                    │
+   left ray  \ │    center ray      │ / right ray
+              \│        |           │/
+               \        ↓           /
+                \  →→→ [P] →→→     /
+                 \   direction     /
+                  \               /
+                   \_____ ______/
+                         V
+                       FOV ≈ 66°
+```
+
 ### The Raycasting Pipeline
 
 ```
