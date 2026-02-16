@@ -1,75 +1,85 @@
-*This project has been created as part of the 42 curriculum by akoaik, msafa.*
+<div align="center">
+
+![cub3D Banner](banner.png)
 
 # cub3D
 
-A 3D game engine using raycasting, inspired by the legendary Wolfenstein 3D.
+**A raycasting 3D engine written in C — inspired by Wolfenstein 3D**
+
+*42 School Project · akoaik & msafa*
+
+[![Language](https://img.shields.io/badge/language-C-blue.svg)](https://en.wikipedia.org/wiki/C_(programming_language))
+[![Norminette](https://img.shields.io/badge/norminette-passing-brightgreen.svg)]()
+[![School](https://img.shields.io/badge/school-42-black.svg)](https://42.fr)
+
+</div>
 
 ---
 
-## Table of Contents
+## What is cub3D?
 
-- [Description](#description)
-- [Features](#features)
-- [How It Works](#how-it-works)
-- [Project Structure](#project-structure)
-- [Dependencies](#dependencies)
-- [Instructions](#instructions)
-- [Map Format](#map-format)
-- [Resources](#resources)
-- [Authors](#authors)
+cub3D is a first-person 3D engine built from scratch in C using the **raycasting** technique — the same method that powered Wolfenstein 3D (1992) and DOOM. From a simple 2D grid map, the engine projects a fully textured 3D world in real time.
 
----
-
-## Description
-
-cub3D is a 3D graphical project that uses raycasting techniques to render a first-person perspective view of a maze-like environment from a 2D map. This technique was pioneered by id Software in games like Wolfenstein 3D (1992), allowing for pseudo-3D graphics on limited hardware.
-
-The player navigates through a maze, with walls rendered in real-time based on their distance and orientation, creating an immersive 3D experience from simple 2D map data.
+No OpenGL. No game engine. Just math, pixels, and C.
 
 ---
 
 ## Features
 
-- **Real-time 3D Rendering** - Smooth raycasting engine running at consistent frame rates
-- **Textured Walls** - Four distinct textures for North, South, East, and West walls
-- **Configurable Environment** - Customizable floor and ceiling colors via RGB values
-- **Fluid Movement** - Forward, backward, and lateral (strafe) movement
-- **Camera Rotation** - Look left and right with smooth rotation
-- **Map Parsing** - Robust parser with comprehensive error handling
-- **Wand Overlay** - First-person weapon sprite display
-- **Multiple Maps** - Support for various `.cub` map configurations
+| Feature | Details |
+|---|---|
+| Real-time 3D rendering | Smooth raycasting at consistent frame rates |
+| Textured walls | Unique XPM textures per direction — N, S, E, W |
+| Configurable colors | Custom RGB values for floor and ceiling |
+| Player movement | Forward, backward, left/right strafe |
+| Camera rotation | Smooth left/right rotation via arrow keys |
+| Map parsing | Full `.cub` file parser with error handling |
+| Multiple maps | Load any valid `.cub` configuration |
 
 ---
 
 ## How It Works
 
-### Raycasting Algorithm
+The core idea: for every vertical column of pixels on the screen, cast a ray from the player into the map and find the nearest wall. The closer the wall, the taller it appears.
 
-The engine casts rays from the player's position across the field of view. For each vertical stripe of the screen:
-
-1. **Ray Direction** - Calculate ray direction based on player orientation and camera plane
-2. **DDA Algorithm** - Use Digital Differential Analyzer to find wall intersections
-3. **Wall Distance** - Calculate perpendicular distance to avoid fisheye effect
-4. **Wall Height** - Determine wall stripe height based on distance
-5. **Texture Mapping** - Map the appropriate texture column to the wall stripe
+### The Raycasting Pipeline
 
 ```
-        Player POV
-           /|\
-          / | \
-         /  |  \
-        /   |   \
-    ───/────┼────\───  Wall
-      Ray   │   Ray
-            │
-         Camera
+For each screen column (x = 0 to WIDTH):
+  1. Compute ray direction based on player angle + camera plane offset
+  2. Run DDA (Digital Differential Analyzer) to step through the grid
+  3. Detect the first wall hit and record which side (N/S or E/W)
+  4. Compute perpendicular distance → avoids fisheye distortion
+  5. Calculate wall slice height on screen
+  6. Sample the correct column from the wall texture
+  7. Draw floor below and ceiling above
 ```
 
-### Coordinate System
+### DDA Algorithm
 
-- **2D Map**: Grid-based where each cell is either a wall (`1`) or empty space (`0`)
-- **Player Position**: Floating-point coordinates within the grid
-- **Screen**: Y-axis increases downward (standard graphics convention)
+DDA is an efficient grid-traversal algorithm. Instead of checking every pixel, it jumps directly from one grid boundary to the next — making wall detection fast and accurate.
+
+```
+Ray steps through grid cells:
+
+  ┌───┬───┬───┬───┐
+  │   │   │ █ │   │
+  ├───┼───┼───┼───┤
+  │   │ · │·█ │   │   · = ray path
+  ├───┼───┼───┼───┤   █ = wall hit
+  │ P ·───┤   │   │   P = player
+  ├───┼───┼───┼───┤
+  │   │   │   │   │
+  └───┴───┴───┴───┘
+```
+
+### Fisheye Correction
+
+A naive distance calculation produces a fisheye distortion. cub3D corrects this by using the **perpendicular** distance (projected onto the camera plane), not the Euclidean distance from player to wall.
+
+### Texture Mapping
+
+Once the wall column height is known, the engine maps a vertical strip of the corresponding texture (N/S/E/W) to that column — scaled proportionally to simulate depth.
 
 ---
 
@@ -77,73 +87,60 @@ The engine casts rays from the player's position across the field of view. For e
 
 ```
 cub3D/
-├── main.c                 # Program entry point
-├── Makefile               # Build configuration
-├── README.md              # Project documentation
+├── main.c                      # Entry point
+├── Makefile
 │
-├── includes/              # Header files
-│   ├── data.h             # Main data structures and prototypes
-│   ├── libft.h            # Libft library header
-│   └── mlx.h              # MinilibX header
+├── includes/
+│   ├── data.h                  # Structs, defines, prototypes
+│   ├── libft.h
+│   └── mlx.h
 │
 ├── src/
-│   ├── parsing/           # Map and configuration parsing
-│   │   ├── map_parsing.c          # Main map parser
-│   │   ├── map_dimensions.c       # Map size calculations
-│   │   ├── textures_parsing.c     # Texture path parsing
-│   │   ├── colors_parsing.c       # RGB color parsing
-│   │   └── ...
+│   ├── parsing/
+│   │   ├── map_parsing.c       # .cub file parser
+│   │   ├── map_dimensions.c    # Grid size computation
+│   │   ├── textures_parsing.c  # Texture path extraction
+│   │   └── colors_parsing.c    # RGB color parsing
 │   │
-│   ├── rendering/         # Graphics and raycasting
-│   │   ├── raycasting.c           # Main rendering loop
-│   │   ├── dda.c                  # DDA algorithm implementation
-│   │   ├── dda_setup.c            # Ray initialization
-│   │   ├── drawing.c              # Pixel drawing functions
-│   │   ├── camera_plane.c         # Camera initialization
-│   │   └── textures_images.c      # Texture loading
+│   ├── rendering/
+│   │   ├── raycasting.c        # Main render loop
+│   │   ├── dda.c               # DDA wall detection
+│   │   ├── dda_setup.c         # Ray initialization
+│   │   ├── drawing.c           # Pixel-level drawing
+│   │   ├── camera_plane.c      # Camera setup
+│   │   └── textures_images.c   # Texture loading
 │   │
-│   └── movements/         # Player controls
-│       ├── player_movements.c     # WASD movement
-│       ├── player_rotations.c     # Arrow key rotation
-│       ├── control_movements.c    # Input handling
-│       └── cleanup.c              # Memory cleanup
+│   └── movements/
+│       ├── player_movements.c  # WASD movement logic
+│       ├── player_rotations.c  # Camera rotation
+│       ├── control_movements.c # Key input handler
+│       └── cleanup.c           # Memory/resource cleanup
 │
-├── libft/                 # Custom C library
-│
-├── minilibx/              # Graphics library (MinilibX)
-│
-├── maps/                  # Map files (.cub)
-│
-└── textures/              # Wall and sprite textures (.xpm)
+├── maps/                       # .cub map files
+├── textures/                   # .xpm wall textures
+├── libft/                      # Custom C library
+└── minilibx/                   # Graphics library
 ```
 
 ---
 
-## Instructions
+## Getting Started
 
-### Compilation
+### Build
 
 ```bash
-# Compile the project
-make
-
-# Clean object files
-make clean
-
-# Full clean (remove object files and executable)
-make fclean
-
-# Recompile from scratch
-make re
+make          # compile
+make clean    # remove object files
+make fclean   # remove objects + executable
+make re       # full rebuild
 ```
 
-### Execution
+### Run
 
 ```bash
 ./cub3d maps/<map_name>.cub
 ```
 
-Example:
 ```bash
 ./cub3d maps/hogsmade_map.cub
 ```
@@ -151,82 +148,71 @@ Example:
 ### Controls
 
 | Key | Action |
-|-----|--------|
+|---|---|
 | `W` | Move forward |
 | `S` | Move backward |
-| `A` | Move left (strafe) |
-| `D` | Move right (strafe) |
-| `←` | Rotate camera left |
-| `→` | Rotate camera right |
-| `ESC` | Exit game |
+| `A` | Strafe left |
+| `D` | Strafe right |
+| `←` | Rotate left |
+| `→` | Rotate right |
+| `ESC` | Quit |
 
 ---
 
-## Map Format
+## Map Format (`.cub`)
 
-Map configuration files use the `.cub` extension and must include:
-
-### Texture Paths
+### Textures
 ```
-NO ./textures/north_wall.xpm
-SO ./textures/south_wall.xpm
-WE ./textures/west_wall.xpm
-EA ./textures/east_wall.xpm
+NO ./textures/north.xpm
+SO ./textures/south.xpm
+WE ./textures/west.xpm
+EA ./textures/east.xpm
 ```
 
-### Colors (RGB: 0-255)
+### Colors
 ```
-F 220,100,0      # Floor color
-C 135,206,235    # Ceiling color
+F 220,100,0       # floor  (R,G,B)
+C 135,206,235     # ceiling (R,G,B)
 ```
 
-### Map Layout
+### Map Grid
 ```
-111111111
-100000001
-100N00001
-100000001
-111111111
+11111111111
+10000000001
+1000N000001
+10000000001
+11111111111
 ```
 
 | Symbol | Meaning |
-|--------|---------|
+|---|---|
 | `1` | Wall |
-| `0` | Empty space |
-| `N` | Player spawn (facing North) |
-| `S` | Player spawn (facing South) |
-| `E` | Player spawn (facing East) |
-| `W` | Player spawn (facing West) |
+| `0` | Walkable space |
+| `N` `S` `E` `W` | Player spawn + facing direction |
 
-### Map Rules
-- Map must be surrounded by walls (`1`)
-- Exactly one player spawn position required
-- No empty lines within the map
-- Spaces are treated as void (must be enclosed)
+### Validation Rules
+- Map must be fully enclosed by walls
+- Exactly one player spawn point
+- No empty lines inside the map
+- Spaces treated as void — must be enclosed by walls
 
 ---
 
-## Resources
+## References
 
-### References
-
-- [Lode's Raycasting Tutorial](https://lodev.org/cgtutor/raycasting.html) - Comprehensive guide to raycasting algorithms, DDA implementation, texture mapping, and more. Primary reference for this project.
-
-### AI Usage
-
-AI tools were utilized in this project for:
-
-| Purpose | Description |
-|---------|-------------|
-| **Testing** | Testing with complex and edge-case maps to verify error handling |
-| **Conceptual Understanding** | Understanding mathematical concepts behind raycasting (ray direction, DDA steps, perpendicular distance, texture coordinates) |
-| **Visualization** | Creating mental models to understand the relationship between 2D map, player position, ray movements, and 3D projection |
+- [Lode's Raycasting Tutorial](https://lodev.org/cgtutor/raycasting.html) — the definitive guide to raycasting, DDA, texture mapping, and fisheye correction
 
 ---
 
 ## Authors
 
-| Author | GitHub |
-|--------|--------|
-| **akoaik** | [github.com/akoaik](https://github.com/alikoaikk) |
-| **msafa** | [github.com/msafa](https://github.com/mohamedsafa) |
+<div align="center">
+
+| | Author | GitHub |
+|---|---|---|
+| | **akoaik** | [github.com/alikoaikk](https://github.com/alikoaikk) |
+| | **msafa** | [github.com/mohamedsafa](https://github.com/mohamedsafa) |
+
+*Built with curiosity and too many segfaults.*
+
+</div>
