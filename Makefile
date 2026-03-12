@@ -15,6 +15,17 @@ NAME = cub3d
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
 
+# Colors
+RED    = \033[0;31m
+GREEN  = \033[0;32m
+YELLOW = \033[0;33m
+BLUE   = \033[0;34m
+CYAN   = \033[0;36m
+BOLD   = \033[1m
+RESET  = \033[0m
+
+OK     = $(GREEN)$(BOLD)✓$(RESET)
+
 SRC_DIR = src
 PARSE_DIR = $(SRC_DIR)/parsing
 RENDER_DIR = $(SRC_DIR)/rendering
@@ -61,21 +72,34 @@ LIBS = -L$(LIBFT_DIR) -lft \
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	make -C $(LIBFT_DIR)
-	make -C $(MLX_DIR)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
+	@printf "$(CYAN)$(BOLD)Building libraries...$(RESET)\n"
+	@make -C $(LIBFT_DIR) --no-print-directory -s
+	@printf "  $(OK) $(YELLOW)libft$(RESET)\n"
+	@make -C $(MLX_DIR) --no-print-directory -s 2>/dev/null
+	@printf "  $(OK) $(YELLOW)minilibx$(RESET)\n"
+	@$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
+	@printf "$(GREEN)$(BOLD)\n  ██████╗██╗   ██╗██████╗ ██████╗ ██████╗\n$(RESET)"
+	@printf "$(GREEN)$(BOLD) ██╔════╝██║   ██║██╔══██╗╚════██╗██╔══██╗\n$(RESET)"
+	@printf "$(GREEN)$(BOLD) ██║     ██║   ██║██████╔╝ █████╔╝██║  ██║\n$(RESET)"
+	@printf "$(GREEN)$(BOLD) ██║     ██║   ██║██╔══██╗ ╚═══██╗██║  ██║\n$(RESET)"
+	@printf "$(GREEN)$(BOLD) ╚██████╗╚██████╔╝██████╔╝██████╔╝██████╔╝\n$(RESET)"
+	@printf "$(GREEN)$(BOLD)  ╚═════╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚═════╝\n\n$(RESET)"
+	@printf "$(OK) $(BOLD)$(NAME) compiled successfully!$(RESET)\n\n"
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@printf "  $(OK) $(BLUE)%-45s$(RESET)\n" $<
 
 clean:
-	rm -f $(OBJ)
-	make -C $(LIBFT_DIR) clean
-	make -C $(MLX_DIR) clean
+	@rm -f $(OBJ)
+	@make -C $(LIBFT_DIR) clean --no-print-directory -s
+	@make -C $(MLX_DIR) clean --no-print-directory -s 2>/dev/null
+	@printf "$(RED)$(BOLD)  [clean]$(RESET) object files removed\n"
 
 fclean: clean
-	rm -f $(NAME)
-	make -C $(LIBFT_DIR) fclean
+	@rm -f $(NAME)
+	@make -C $(LIBFT_DIR) fclean --no-print-directory -s
+	@printf "$(RED)$(BOLD)  [fclean]$(RESET) $(NAME) removed\n"
 
 re: fclean all
 

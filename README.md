@@ -1,6 +1,6 @@
 <div align="center">
 
-![cub3D Banner](banner.png)
+![cub3D Banner](images/c3im.png)
 
 # cub3D
 
@@ -215,6 +215,18 @@ C 135,206,235     # ceiling (R,G,B)
 ## References
 
 - [Lode's Raycasting Tutorial](https://lodev.org/cgtutor/raycasting.html) — the definitive guide to raycasting, DDA, texture mapping, and fisheye correction
+
+---
+
+## Screenshots
+
+<div align="center">
+
+![Screenshot 1](images/c3im.png)
+![Screenshot 2](images/c3im2.png)
+![Screenshot 3](images/c3im3.png)
+
+</div>
 
 ---
 
